@@ -95,30 +95,35 @@ jobs:
           repository: scikit-hep/awkward
           path: repo-awkward
           submodules: true
+          branch: "main"
 
       - name: Clone dask-contrib/dask-awkward
         uses: actions/checkout@v4
         with:
           repository: dask-contrib/dask-awkward
           path: repo-dask-awkward
+          branch: "main"
 
       - name: Clone scikit-hep/uproot5
         uses: actions/checkout@v4
         with:
           repository: scikit-hep/uproot5
           path: repo-uproot5
+          branch: "main"
 
       - name: Clone scikit-hep/vector
         uses: actions/checkout@v4
         with:
           repository: scikit-hep/vector
           path: repo-vector
+          branch: "main"
 
       - name: Clone CoffeaTeam/coffea
         uses: actions/checkout@v4
         with:
           repository: CoffeaTeam/coffea
           path: repo-coffea
+          branch: "master"
 
       - name: Build scikit-hep/awkward
         shell: bash -el {0}
@@ -157,6 +162,15 @@ jobs:
           cd repo-coffea
           uv pip install -e '.[dev,dask]'
           cd ..
+
+      - name: Install all clone packages
+        shell: bash -el {0}
+        run: |
+          uv pip install -e repo-awkward
+          uv pip install -e repo-dask-awkward
+          uv pip install -e repo-uproot5
+          uv pip install -e repo-vector
+          uv pip install -e repo-coffea
 
       - name: Show all versions
         shell: bash -el {0}
