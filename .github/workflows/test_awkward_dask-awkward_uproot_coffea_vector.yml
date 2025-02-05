@@ -32,6 +32,7 @@ jobs:
     env:
       # PIP_ONLY_BINARY: cmake,numpy,pandas,pyarrow,numexpr
       UV_SYSTEM_PYTHON: 1
+      UV_NO_CACHE: 1
 
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
@@ -96,14 +97,14 @@ jobs:
           repository: scikit-hep/awkward
           path: repo-awkward
           submodules: true
-          branch: "main"
+          ref: "main"
 
       - name: Clone dask-contrib/dask-awkward
         uses: actions/checkout@v4
         with:
           repository: dask-contrib/dask-awkward
           path: repo-dask-awkward
-          branch: "main"
+          ref: "main"
           fetch-depth: 0
           lfs: true
 
@@ -112,21 +113,21 @@ jobs:
         with:
           repository: scikit-hep/uproot5
           path: repo-uproot5
-          branch: "main"
+          ref: "main"
 
       - name: Clone scikit-hep/vector
         uses: actions/checkout@v4
         with:
           repository: scikit-hep/vector
           path: repo-vector
-          branch: "main"
+          ref: "main"
 
       - name: Clone CoffeaTeam/coffea
         uses: actions/checkout@v4
         with:
           repository: CoffeaTeam/coffea
           path: repo-coffea
-          branch: "master"
+          ref: "master"
 
       - name: Build scikit-hep/awkward
         shell: bash -el {0}
@@ -166,10 +167,14 @@ jobs:
           uv pip install -e '.[dev,dask]'
           cd ..
 
-      - name: Install all clone packages
+      - name: Build only cloned repos
         shell: bash -el {0}
         run: |
-          uv pip install -e repo-awkward repo-dask-awkward repo-uproot5 repo-vector repo-coffea
+          uv pip install repo-awkward --no-deps
+          uv pip install repo-dask-awkward --no-deps
+          uv pip install repo-uproot5 --no-deps
+          uv pip install repo-vector --no-deps
+          uv pip install repo-coffea --no-deps
 
       - name: Show all versions
         shell: bash -el {0}
