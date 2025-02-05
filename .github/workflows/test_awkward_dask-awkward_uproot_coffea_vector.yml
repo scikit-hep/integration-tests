@@ -37,14 +37,18 @@ jobs:
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
     steps:
-      - name: Conda with Python
-        uses: conda-incubator/setup-miniconda@v3
+      # - name: Conda with Python
+      #   uses: conda-incubator/setup-miniconda@v3
+      #   with:
+      #     auto-update-conda: true
+      #     python-version: ${{ matrix.python-version }}
+      #     channels: conda-forge
+      #     conda-solver: "libmamba"
+      #     activate-environment: test
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge
-          conda-solver: "libmamba"
-          activate-environment: test
 
       - name: JDK ${{ matrix.java-distribution }}/${{ matrix.java-version }}
         uses: actions/setup-java@v4
@@ -55,40 +59,40 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Dependencies (Linux only)
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash -el {0}
-        run: |
-          conda install root
-          uv pip install --upgrade pip setuptools wheel
-          uv pip install dask[array,dataframe,distributed,diagnostics]
-          uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          uv pip install xgboost
-          uv pip install tritonclient[grpc,http]
-          uv pip list
-          java -version
+      # - name: Dependencies (Linux only)
+      #   if: matrix.os == 'ubuntu-latest'
+      #   shell: bash -el {0}
+      #   run: |
+      #     conda install root
+      #     uv pip install --upgrade pip setuptools wheel
+      #     uv pip install dask[array,dataframe,distributed,diagnostics]
+      #     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+      #     uv pip install xgboost
+      #     uv pip install tritonclient[grpc,http]
+      #     uv pip list
+      #     java -version
 
-      - name: Dependencies (MacOS only)
-        if: matrix.os == 'macOS-latest'
-        shell: bash -el {0}
-        run: |
-          uv pip install --upgrade pip setuptools wheel
-          uv pip install dask[array,dataframe,distributed,diagnostics]
-          uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          uv pip install xgboost
-          uv pip list
-          java -version
+      # - name: Dependencies (MacOS only)
+      #   if: matrix.os == 'macOS-latest'
+      #   shell: bash -el {0}
+      #   run: |
+      #     uv pip install --upgrade pip setuptools wheel
+      #     uv pip install dask[array,dataframe,distributed,diagnostics]
+      #     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+      #     uv pip install xgboost
+      #     uv pip list
+      #     java -version
 
-      - name: Dependencies (Windows only)
-        if: matrix.os == 'windows-latest'
-        shell: bash -el {0}
-        run: |
-          uv pip install --upgrade pip setuptools wheel
-          uv pip install dask[array,dataframe,distributed,diagnostics]
-          uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          uv pip install xgboost
-          uv pip list
-          java -version
+      # - name: Dependencies (Windows only)
+      #   if: matrix.os == 'windows-latest'
+      #   shell: bash -el {0}
+      #   run: |
+      #     uv pip install --upgrade pip setuptools wheel
+      #     uv pip install dask[array,dataframe,distributed,diagnostics]
+      #     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+      #     uv pip install xgboost
+      #     uv pip list
+      #     java -version
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
@@ -127,6 +131,7 @@ jobs:
           repository: scikit-hep/coffea
           path: repo-coffea
           ref: "master"
+          fetch-depth: 0
 
       - name: Build scikit-hep/awkward
         shell: bash -el {0}
@@ -178,8 +183,7 @@ jobs:
       - name: Show all versions
         shell: bash -el {0}
         run: |
-          conda info
-          conda list
+          uv pip list --system
           python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
 
       - name: Test scikit-hep/awkward
