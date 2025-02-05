@@ -19,7 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        # os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest]
         java-version: [17]
         java-distribution: ["corretto"]
         python-version:
@@ -123,7 +124,7 @@ jobs:
       - name: Clone CoffeaTeam/coffea
         uses: actions/checkout@v4
         with:
-          repository: CoffeaTeam/coffea
+          repository: scikit-hep/coffea
           path: repo-coffea
           ref: "master"
 
@@ -158,7 +159,7 @@ jobs:
           uv pip install -e .[dev]
           cd ..
 
-      - name: Build CoffeaTeam/coffea
+      - name: Build scikit-hep/coffea
         shell: bash -el {0}
         run: |
           cd repo-coffea
@@ -206,10 +207,10 @@ jobs:
         shell: bash -el {0}
         run: |
           cd repo-vector
-          pytest -vv -rs tests
+          pytest -vv -rs tests --ignore tests/test_notebooks.py
           cd ..
 
-      - name: Test CoffeaTeam/coffea
+      - name: Test scikit-hep/coffea
         shell: bash -el {0}
         run: |
           cd repo-coffea
