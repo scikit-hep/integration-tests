@@ -19,7 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        # os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest]
         java-version: [17]
         java-distribution: ["corretto"]
         python-version:
@@ -103,6 +104,8 @@ jobs:
           repository: dask-contrib/dask-awkward
           path: repo-dask-awkward
           branch: "main"
+          fetch-depth: 0
+          lfs: true
 
       - name: Clone scikit-hep/uproot5
         uses: actions/checkout@v4
@@ -166,11 +169,7 @@ jobs:
       - name: Install all clone packages
         shell: bash -el {0}
         run: |
-          uv pip install -e repo-awkward
-          uv pip install -e repo-dask-awkward
-          uv pip install -e repo-uproot5
-          uv pip install -e repo-vector
-          uv pip install -e repo-coffea
+          uv pip install -e repo-awkward repo-dask-awkward repo-uproot5 repo-vector repo-coffea
 
       - name: Show all versions
         shell: bash -el {0}
