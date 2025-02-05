@@ -170,11 +170,11 @@ jobs:
       - name: Build only cloned repos
         shell: bash -el {0}
         run: |
-          uv pip install repo-awkward --no-deps
-          uv pip install repo-dask-awkward --no-deps
-          uv pip install repo-uproot5 --no-deps
-          uv pip install repo-vector --no-deps
-          uv pip install repo-coffea --no-deps
+          uv pip install -e "repo-awkward" --no-deps
+          uv pip install -e "repo-dask-awkward" --no-deps
+          uv pip install -e "repo-uproot5" --no-deps
+          uv pip install -e "repo-vector" --no-deps
+          uv pip install -e "repo-coffea" --no-deps
 
       - name: Show all versions
         shell: bash -el {0}
