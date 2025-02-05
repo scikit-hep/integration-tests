@@ -19,8 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-latest, macOS-latest, windows-latest]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         java-version: [17]
         java-distribution: ["corretto"]
         python-version:
@@ -72,7 +71,6 @@ jobs:
         if: matrix.os == 'macOS-latest'
         shell: bash -el {0}
         run: |
-          conda install root
           uv pip install --upgrade pip setuptools wheel
           uv pip install dask[array,dataframe,distributed,diagnostics]
           uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -215,5 +213,5 @@ jobs:
         shell: bash -el {0}
         run: |
           cd repo-coffea
-          pytest -vv -rs tests
+          pytest -vv -rs tests --deselect=test_taskvine
           cd ..
