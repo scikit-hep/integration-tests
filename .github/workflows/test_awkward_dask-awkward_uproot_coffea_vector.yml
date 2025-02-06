@@ -1,9 +1,10 @@
 # https://github.com/scikit-hep/awkward/blob/main/.github/workflows/test.yml
 # https://github.com/dask-contrib/dask-awkward/blob/main/.github/workflows/pypi-tests.yml
 # https://github.com/scikit-hep/uproot5/blob/main/.github/workflows/build-test.yml
-# https://github.com/CoffeaTeam/coffea/blob/master/.github/workflows/ci.yml
+# https://github.com/scikit-hep/vector/blob/main/.github/workflows/ci.yml
+# https://github.com/scikit-hep/coffea/blob/master/.github/workflows/ci.yml
 
-name: Integrations Tests
+name: Integration Tests
 
 on:
   workflow_dispatch:
@@ -30,21 +31,11 @@ jobs:
           - "3.12" # highest
           # - "3.13" # highest
     env:
-      # PIP_ONLY_BINARY: cmake,numpy,pandas,pyarrow,numexpr
       UV_SYSTEM_PYTHON: 1
-      UV_NO_CACHE: 1
 
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
     steps:
-      # - name: Conda with Python
-      #   uses: conda-incubator/setup-miniconda@v3
-      #   with:
-      #     auto-update-conda: true
-      #     python-version: ${{ matrix.python-version }}
-      #     channels: conda-forge
-      #     conda-solver: "libmamba"
-      #     activate-environment: test
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -58,41 +49,6 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-
-      # - name: Dependencies (Linux only)
-      #   if: matrix.os == 'ubuntu-latest'
-      #   shell: bash -el {0}
-      #   run: |
-      #     conda install root
-      #     uv pip install --upgrade pip setuptools wheel
-      #     uv pip install dask[array,dataframe,distributed,diagnostics]
-      #     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-      #     uv pip install xgboost
-      #     uv pip install tritonclient[grpc,http]
-      #     uv pip list
-      #     java -version
-
-      # - name: Dependencies (MacOS only)
-      #   if: matrix.os == 'macOS-latest'
-      #   shell: bash -el {0}
-      #   run: |
-      #     uv pip install --upgrade pip setuptools wheel
-      #     uv pip install dask[array,dataframe,distributed,diagnostics]
-      #     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-      #     uv pip install xgboost
-      #     uv pip list
-      #     java -version
-
-      # - name: Dependencies (Windows only)
-      #   if: matrix.os == 'windows-latest'
-      #   shell: bash -el {0}
-      #   run: |
-      #     uv pip install --upgrade pip setuptools wheel
-      #     uv pip install dask[array,dataframe,distributed,diagnostics]
-      #     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-      #     uv pip install xgboost
-      #     uv pip list
-      #     java -version
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
