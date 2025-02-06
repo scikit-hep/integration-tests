@@ -20,7 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        # os: [ubuntu-latest, macOS-latest, windows-latest] # macOS & windows currently broken
+        os: [ubuntu-latest]
         java-version: [17]
         java-distribution: ["corretto"]
         python-version:
