@@ -1,13 +1,12 @@
 # https://github.com/scikit-hep/awkward/blob/main/.github/workflows/test.yml
 # https://github.com/dask-contrib/dask-awkward/blob/main/.github/workflows/pypi-tests.yml
 # https://github.com/scikit-hep/uproot5/blob/main/.github/workflows/build-test.yml
-# https://github.com/CoffeaTeam/coffea/blob/master/.github/workflows/ci.yml
+# https://github.com/scikit-hep/vector/blob/main/.github/workflows/ci.yml
+# https://github.com/scikit-hep/coffea/blob/master/.github/workflows/ci.yml
 
-name: Test
+name: Integration Tests
 
 on:
-  schedule:
-    - cron:  '1 0 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -21,155 +20,159 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        # os: [ubuntu-latest, macOS-latest, windows-latest] # macOS & windows currently broken
+        os: [ubuntu-latest]
         java-version: [17]
         java-distribution: ["corretto"]
-        python-version: ["3.8", "3.11"]
+        python-version:
+          - "3.9" # lowest
+          # - "3.10"
+          # - "3.11"
+          - "3.12" # highest
+          # - "3.13" # highest
     env:
-      PIP_ONLY_BINARY: cmake,numpy,pandas,pyarrow,numexpr
-      PIP_PRE: "1"
+      UV_SYSTEM_PYTHON: 1
 
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
     steps:
-    - name: Conda with Python
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        python-version: ${{ matrix.python-version }}
-        channels: conda-forge
-        conda-solver: "libmamba"
-        activate-environment: test
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: JDK ${{ matrix.java-distribution }}/${{ matrix.java-version }}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ matrix.java-version }}
-        distribution: ${{ matrix.java-distribution }}
+      - name: JDK ${{ matrix.java-distribution }}/${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: ${{ matrix.java-distribution }}
 
-    - name: Dependencies (Linux only)
-      if: matrix.os == 'ubuntu-latest'
-      shell: bash -el {0}
-      run: |
-        conda install root
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install dask[array,dataframe,distributed,diagnostics]
-        python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-        python -m pip install xgboost
-        python -m pip install tritonclient[grpc,http]
-        python -m pip list
-        java -version
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
-    - name: Dependencies (MacOS only)
-      if: matrix.os == 'macOS-latest'
-      shell: bash -el {0}
-      run: |
-        conda install root
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install dask[array,dataframe,distributed,diagnostics]
-        python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-        python -m pip install xgboost
-        python -m pip list
-        java -version
+      - name: Clone scikit-hep/awkward
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/awkward
+          path: repo-awkward
+          submodules: true
+          ref: "main"
 
-    - name: Dependencies (Windows only)
-      if: matrix.os == 'windows-latest'
-      shell: bash -el {0}
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install dask[array,dataframe,distributed,diagnostics]
-        python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-        python -m pip install xgboost
-        python -m pip list
-        java -version
+      - name: Clone dask-contrib/dask-awkward
+        uses: actions/checkout@v4
+        with:
+          repository: dask-contrib/dask-awkward
+          path: repo-dask-awkward
+          ref: "main"
+          fetch-depth: 0
+          lfs: true
 
-    - name: Clone scikit-hep/awkward
-      uses: actions/checkout@v4
-      with:
-        repository: scikit-hep/awkward
-        path: repo-awkward
-        submodules: true
+      - name: Clone scikit-hep/uproot5
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/uproot5
+          path: repo-uproot5
+          ref: "main"
 
-    - name: Clone dask-contrib/dask-awkward
-      uses: actions/checkout@v4
-      with:
-        repository: dask-contrib/dask-awkward
-        path: repo-dask-awkward
+      - name: Clone scikit-hep/vector
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/vector
+          path: repo-vector
+          ref: "main"
 
-    - name: Clone scikit-hep/uproot5
-      uses: actions/checkout@v4
-      with:
-        repository: scikit-hep/uproot5
-        path: repo-uproot5
+      - name: Clone CoffeaTeam/coffea
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/coffea
+          path: repo-coffea
+          ref: "master"
+          fetch-depth: 0
 
-    - name: Clone CoffeaTeam/coffea
-      uses: actions/checkout@v4
-      with:
-        repository: CoffeaTeam/coffea
-        path: repo-coffea
+      - name: Build scikit-hep/awkward
+        shell: bash -el {0}
+        run: |
+          cd repo-awkward
+          pipx run nox -s prepare -- --headers --signatures --tests
+          uv pip install -r requirements-test-full.txt
+          uv pip install -vv ./awkward-cpp
+          uv pip install -e .[test]
+          cd ..
 
-    - name: Build scikit-hep/awkward
-      shell: bash -el {0}
-      run: |
-        cd repo-awkward
-        pipx run nox -s prepare -- --headers --signatures --tests
-        python -m pip install --pre -r requirements-test.txt
-        python -m pip install --pre -vv ./awkward-cpp
-        python -m pip install --pre .[test]
-        cd ..
+      - name: Build dask-contrib/dask-awkward
+        shell: bash -el {0}
+        run: |
+          cd repo-dask-awkward
+          uv pip install -e .[complete,test]
+          cd ..
 
-    - name: Build dask-contrib/dask-awkward
-      shell: bash -el {0}
-      run: |
-        cd repo-dask-awkward
-        python -m pip install --pre .[complete,test]
-        cd ..
+      - name: Build scikit-hep/uproot5
+        shell: bash -el {0}
+        run: |
+          cd repo-uproot5
+          uv pip install -e .[test,dev]
+          cd ..
 
-    - name: Build scikit-hep/uproot5
-      shell: bash -el {0}
-      run: |
-        cd repo-uproot5
-        python -m pip install --pre .[test,dev]
-        cd ..
+      - name: Build scikit-hep/vector
+        shell: bash -el {0}
+        run: |
+          cd repo-vector
+          uv pip install -e .[dev]
+          cd ..
 
-    - name: Build CoffeaTeam/coffea
-      shell: bash -el {0}
-      run: |
-        cd repo-coffea
-        python -m pip install --pre -q -e '.[dev,dask]' --upgrade --upgrade-strategy eager
-        cd ..
+      - name: Build scikit-hep/coffea
+        shell: bash -el {0}
+        run: |
+          cd repo-coffea
+          uv pip install -e '.[dev,dask]'
+          cd ..
 
-    - name: Show all versions
-      shell: bash -el {0}
-      run: |
-        conda info
-        conda list
-        python -c 'import awkward, dask_awkward, uproot, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{coffea.__version__ = }")'
+      - name: Build only cloned repos
+        shell: bash -el {0}
+        run: |
+          uv pip install -e "repo-awkward" --no-deps
+          uv pip install -e "repo-dask-awkward" --no-deps
+          uv pip install -e "repo-uproot5" --no-deps
+          uv pip install -e "repo-vector" --no-deps
+          uv pip install -e "repo-coffea" --no-deps
 
-    - name: Test scikit-hep/awkward
-      shell: bash -el {0}
-      run: |
-        cd repo-awkward
-        python -m pytest -vv -rs tests
-        cd ..
+      - name: Show all versions
+        shell: bash -el {0}
+        run: |
+          uv pip list --system
+          python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
 
-    - name: Test dask-contrib/dask-awkward
-      shell: bash -el {0}
-      run: |
-        cd repo-dask-awkward
-        python -m pytest -vv -rs tests
-        cd ..
+      - name: Test scikit-hep/awkward
+        shell: bash -el {0}
+        run: |
+          cd repo-awkward
+          pytest -vv -rs tests
+          cd ..
 
-    - name: Test scikit-hep/uproot5
-      shell: bash -el {0}
-      run: |
-        cd repo-uproot5
-        python -m pytest -vv tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
-        cd ..
+      - name: Test dask-contrib/dask-awkward
+        shell: bash -el {0}
+        run: |
+          cd repo-dask-awkward
+          pytest -vv -rs tests
+          cd ..
 
-    - name: Test CoffeaTeam/coffea
-      shell: bash -el {0}
-      run: |
-        cd repo-coffea
-        echo "Which Coffea tests should we run?"
-        cd ..
+      - name: Test scikit-hep/uproot5
+        shell: bash -el {0}
+        run: |
+          cd repo-uproot5
+          pytest -vv tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
+          cd ..
+
+      - name: Test dask-contrib/vector
+        shell: bash -el {0}
+        run: |
+          cd repo-vector
+          pytest -vv -rs tests --ignore tests/test_notebooks.py
+          cd ..
+
+      - name: Test scikit-hep/coffea
+        shell: bash -el {0}
+        run: |
+          cd repo-coffea
+          pytest -vv -rs tests --deselect=test_taskvine
+          cd ..
