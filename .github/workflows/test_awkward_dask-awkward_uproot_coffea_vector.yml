@@ -55,7 +55,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          pyproject-file: "pyproject.toml"
+          pyproject-file: "~/pyproject.toml"
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
