@@ -57,10 +57,10 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Sync & activate env
-        run: |
+      - name: Sync env
+        run:
           GIT_LFS_SKIP_SMUDGE=1 uv sync
-          source .venv/bin/activate
+          # source .venv/bin/activate
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
@@ -112,7 +112,6 @@ jobs:
       #     cd ..
 
       - name: Build scikit-hep/awkward
-        shell: bash -el {0}
         run: |
           cd repo-awkward
           pipx run nox -s prepare -- --headers --signatures --tests
@@ -162,42 +161,36 @@ jobs:
       #     uv pip install -e "repo-coffea" --no-deps
 
       - name: Show all versions
-        shell: bash -el {0}
         run: |
           uv pip list --system
           python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
 
       - name: Test scikit-hep/awkward
-        shell: bash -el {0}
         run: |
           cd repo-awkward
-          pytest -vv -rs tests
+          uv run pytest -vv -rs tests
           cd ..
 
       - name: Test dask-contrib/dask-awkward
-        shell: bash -el {0}
         run: |
           cd repo-dask-awkward
-          pytest -vv -rs tests
+          uv run pytest -vv -rs tests
           cd ..
 
       - name: Test scikit-hep/uproot5
-        shell: bash -el {0}
         run: |
           cd repo-uproot5
-          pytest -vv tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
+          uv run pytest -vv tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
           cd ..
 
       - name: Test dask-contrib/vector
-        shell: bash -el {0}
         run: |
           cd repo-vector
-          pytest -vv -rs tests --ignore tests/test_notebooks.py
+          uv run pytest -vv -rs tests --ignore tests/test_notebooks.py
           cd ..
 
       - name: Test scikit-hep/coffea
-        shell: bash -el {0}
         run: |
           cd repo-coffea
-          pytest -vv -rs tests --deselect=test_taskvine
+          uv run pytest -vv -rs tests --deselect=test_taskvine
           cd ..
