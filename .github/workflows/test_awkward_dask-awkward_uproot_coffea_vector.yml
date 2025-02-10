@@ -28,7 +28,7 @@ jobs:
           - "3.9" # lowest
           # - "3.10"
           # - "3.11"
-          # - "3.12"
+          - "3.12"
           - "3.13" # highest
     # env:
     #   UV_SYSTEM_PYTHON: 1
@@ -175,7 +175,7 @@ jobs:
         run: uv run pytest -vv -rs repo-dask-awkward/tests
 
       - name: Test scikit-hep/uproot5
-        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
+        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py
 
       - name: Test dask-contrib/vector
         run: uv run pytest -vv -rs repo-vector/tests --ignore repo-vector/tests/test_notebooks.py
