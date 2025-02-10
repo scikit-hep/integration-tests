@@ -4,7 +4,7 @@ version = "0.1.0"
 readme = "README.md"
 dependencies = [
     "pytest",
-    "pyarrow==16.0.0;sys_platform != 'win32' and python_version < '3.13'",
+    "pyarrow==16.0.0",                                                     # this may need a fix in awkward-array for newer versions
     "awkward @ git+https://github.com/scikit-hep/awkward.git",
     "uproot @ git+https://github.com/scikit-hep/uproot5.git",
     "vector @ git+https://github.com/scikit-hep/vector.git",
