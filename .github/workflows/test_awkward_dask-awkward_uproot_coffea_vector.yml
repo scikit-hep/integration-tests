@@ -59,7 +59,7 @@ jobs:
 
       - name: Sync & activate env
         run: |
-          uv sync
+          GIT_LFS_SKIP_SMUDGE=1 uv sync
           source .venv/bin/activate
 
       - name: Clone scikit-hep/awkward
