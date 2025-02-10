@@ -30,8 +30,8 @@ jobs:
           # - "3.11"
           # - "3.12"
           - "3.13" # highest
-    env:
-      UV_SYSTEM_PYTHON: 1
+    # env:
+    #   UV_SYSTEM_PYTHON: 1
 
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
@@ -169,31 +169,16 @@ jobs:
         run: uv pip list
 
       - name: Test scikit-hep/awkward
-        run: |
-          cd repo-awkward
-          uv run pytest -vv -rs tests
-          cd ..
+        run: uv run pytest -vv -rs repo-awkward/tests
 
       - name: Test dask-contrib/dask-awkward
-        run: |
-          cd repo-dask-awkward
-          uv run pytest -vv -rs tests
-          cd ..
+        run: uv run pytest -vv -rs repo-dask-awkward/tests
 
       - name: Test scikit-hep/uproot5
-        run: |
-          cd repo-uproot5
-          uv run pytest -vv tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
-          cd ..
+        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
 
       - name: Test dask-contrib/vector
-        run: |
-          cd repo-vector
-          uv run pytest -vv -rs tests --ignore tests/test_notebooks.py
-          cd ..
+        run: uv run pytest -vv -rs repo-vector/tests --ignore repo-vector/tests/test_notebooks.py
 
       - name: Test scikit-hep/coffea
-        run: |
-          cd repo-coffea
-          uv run pytest -vv -rs tests --deselect=test_taskvine
-          cd ..
+        run: uv run pytest -vv -rs repo-coffea/tests --deselect=test_taskvine
