@@ -160,10 +160,13 @@ jobs:
       #     uv pip install -e "repo-vector" --no-deps
       #     uv pip install -e "repo-coffea" --no-deps
 
+      # - name: Show all versions
+      #   run: |
+      #     uv pip list --system
+      #     python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
+
       - name: Show all versions
-        run: |
-          uv pip list --system
-          python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
+        run: uv pip list
 
       - name: Test scikit-hep/awkward
         run: |
