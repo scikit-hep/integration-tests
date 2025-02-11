@@ -26,12 +26,10 @@ jobs:
         java-distribution: ["corretto"]
         python-version:
           - "3.9" # lowest
-          # - "3.10"
-          # - "3.11"
-          - "3.12" # highest
-          # - "3.13" # highest
-    env:
-      UV_SYSTEM_PYTHON: 1
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13" # highest
 
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
@@ -47,8 +45,18 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: ${{ matrix.java-distribution }}
 
+      - name: Add workaround for 3.13 + cramjam
+        if: matrix.python-version == '3.13'
+        run: echo 'PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1' >> $GITHUB_ENV
+        shell: bash
+
+      - uses: actions/checkout@v4
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+
+      - name: Sync env
+        run: GIT_LFS_SKIP_SMUDGE=1 uv sync
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
@@ -81,7 +89,7 @@ jobs:
           path: repo-vector
           ref: "main"
 
-      - name: Clone CoffeaTeam/coffea
+      - name: Clone scikit-hep/coffea
         uses: actions/checkout@v4
         with:
           repository: scikit-hep/coffea
@@ -89,90 +97,33 @@ jobs:
           ref: "master"
           fetch-depth: 0
 
-      - name: Build scikit-hep/awkward
-        shell: bash -el {0}
+      - name: Build awkward-cpp
         run: |
           cd repo-awkward
           pipx run nox -s prepare -- --headers --signatures --tests
-          uv pip install -r requirements-test-full.txt
           uv pip install -vv ./awkward-cpp
-          uv pip install -e .[test]
           cd ..
-
-      - name: Build dask-contrib/dask-awkward
-        shell: bash -el {0}
-        run: |
-          cd repo-dask-awkward
-          uv pip install -e .[complete,test]
-          cd ..
-
-      - name: Build scikit-hep/uproot5
-        shell: bash -el {0}
-        run: |
-          cd repo-uproot5
-          uv pip install -e .[test,dev]
-          cd ..
-
-      - name: Build scikit-hep/vector
-        shell: bash -el {0}
-        run: |
-          cd repo-vector
-          uv pip install -e .[dev]
-          cd ..
-
-      - name: Build scikit-hep/coffea
-        shell: bash -el {0}
-        run: |
-          cd repo-coffea
-          uv pip install -e '.[dev,dask]'
-          cd ..
-
-      - name: Build only cloned repos
-        shell: bash -el {0}
-        run: |
-          uv pip install -e "repo-awkward" --no-deps
-          uv pip install -e "repo-dask-awkward" --no-deps
-          uv pip install -e "repo-uproot5" --no-deps
-          uv pip install -e "repo-vector" --no-deps
-          uv pip install -e "repo-coffea" --no-deps
 
       - name: Show all versions
-        shell: bash -el {0}
-        run: |
-          uv pip list --system
-          python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
+        run: uv pip list
 
       - name: Test scikit-hep/awkward
-        shell: bash -el {0}
-        run: |
-          cd repo-awkward
-          pytest -vv -rs tests
-          cd ..
+        run: uv run pytest -vv -rs repo-awkward/tests
 
       - name: Test dask-contrib/dask-awkward
-        shell: bash -el {0}
-        run: |
-          cd repo-dask-awkward
-          pytest -vv -rs tests
-          cd ..
+        run: uv run pytest -vv -rs repo-dask-awkward/tests
 
       - name: Test scikit-hep/uproot5
-        shell: bash -el {0}
-        run: |
-          cd repo-uproot5
-          pytest -vv tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket"
-          cd ..
+        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py
 
       - name: Test dask-contrib/vector
-        shell: bash -el {0}
         run: |
-          cd repo-vector
-          pytest -vv -rs tests --ignore tests/test_notebooks.py
+          cd repo-vector/
+          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py
           cd ..
 
       - name: Test scikit-hep/coffea
-        shell: bash -el {0}
         run: |
-          cd repo-coffea
-          pytest -vv -rs tests --deselect=test_taskvine
+          cd repo-coffea/
+          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine
           cd ..
