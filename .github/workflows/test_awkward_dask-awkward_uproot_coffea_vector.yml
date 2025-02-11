@@ -182,4 +182,7 @@ jobs:
           cd ..
 
       - name: Test scikit-hep/coffea
-        run: uv run pytest -vv -rs repo-coffea/tests --deselect=test_taskvine
+        run: |
+          cd repo-coffea/
+          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine
+          cd ..
