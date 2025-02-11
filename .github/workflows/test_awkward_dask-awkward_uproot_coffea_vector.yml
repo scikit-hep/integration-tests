@@ -178,7 +178,7 @@ jobs:
       - name: Test dask-contrib/vector
         run: |
           cd repo-vector/
-          uv run pytest -vv -rs tests --ignore tests/test_notebooks.py
+          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py
           cd ..
 
       - name: Test scikit-hep/coffea
