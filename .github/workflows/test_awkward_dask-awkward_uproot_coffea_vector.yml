@@ -26,12 +26,10 @@ jobs:
         java-distribution: ["corretto"]
         python-version:
           - "3.9" # lowest
-          # - "3.10"
-          # - "3.11"
+          - "3.10"
+          - "3.11"
           - "3.12"
           - "3.13" # highest
-    # env:
-    #   UV_SYSTEM_PYTHON: 1
 
     name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
 
@@ -91,7 +89,7 @@ jobs:
           path: repo-vector
           ref: "main"
 
-      - name: Clone CoffeaTeam/coffea
+      - name: Clone scikit-hep/coffea
         uses: actions/checkout@v4
         with:
           repository: scikit-hep/coffea
@@ -99,69 +97,12 @@ jobs:
           ref: "master"
           fetch-depth: 0
 
-      # - name: Build scikit-hep/awkward
-      #   shell: bash -el {0}
-      #   run: |
-      #     cd repo-awkward
-      #     pipx run nox -s prepare -- --headers --signatures --tests
-      #     uv pip install -r requirements-test-full.txt
-      #     uv pip install -vv ./awkward-cpp
-      #     uv pip install -e .[test]
-      #     cd ..
-
-      - name: Build scikit-hep/awkward
+      - name: Build awkward-cpp
         run: |
           cd repo-awkward
           pipx run nox -s prepare -- --headers --signatures --tests
           uv pip install -vv ./awkward-cpp
           cd ..
-
-      # - name: Build env
-      #   shell: bash -el {0}
-      #   run: |
-      #     uv pip install -r pyproject.toml
-
-      # - name: Build dask-contrib/dask-awkward
-      #   shell: bash -el {0}
-      #   run: |
-      #     cd repo-dask-awkward
-      #     uv pip install -e .[complete,test]
-      #     cd ..
-
-      # - name: Build scikit-hep/uproot5
-      #   shell: bash -el {0}
-      #   run: |
-      #     cd repo-uproot5
-      #     uv pip install -e .[test,dev]
-      #     cd ..
-
-      # - name: Build scikit-hep/vector
-      #   shell: bash -el {0}
-      #   run: |
-      #     cd repo-vector
-      #     uv pip install -e .[dev]
-      #     cd ..
-
-      # - name: Build scikit-hep/coffea
-      #   shell: bash -el {0}
-      #   run: |
-      #     cd repo-coffea
-      #     uv pip install -e '.[dev,dask]'
-      #     cd ..
-
-      # - name: Build only cloned repos
-      #   shell: bash -el {0}
-      #   run: |
-      #     uv pip install -e "repo-awkward" --no-deps
-      #     uv pip install -e "repo-dask-awkward" --no-deps
-      #     uv pip install -e "repo-uproot5" --no-deps
-      #     uv pip install -e "repo-vector" --no-deps
-      #     uv pip install -e "repo-coffea" --no-deps
-
-      # - name: Show all versions
-      #   run: |
-      #     uv pip list --system
-      #     python -c 'import awkward, dask_awkward, uproot, vector, coffea; print(f"{awkward.__version__ = }\n{dask_awkward.__version__ = }\n{uproot.__version__ = }\n{vector.__version__ = }\n{coffea.__version__ = }")'
 
       - name: Show all versions
         run: uv pip list
