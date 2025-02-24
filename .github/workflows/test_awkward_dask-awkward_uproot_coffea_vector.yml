@@ -8,6 +8,9 @@ name: Integration Tests
 
 on:
   workflow_dispatch:
+  pull_request:
+  branches:
+    - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,8 +33,9 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13" # highest
+        dask-client: ["with", "without"]
 
-    name: test (${{ matrix.os }}) - Python ${{ matrix.python-version }}, JDK${{ matrix.java-version }}
+    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} dask
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -104,26 +108,37 @@ jobs:
           uv pip install -vv ./awkward-cpp
           cd ..
 
+      - name: Add xdist
+        run: uv pip install pytest-xdist
+
       - name: Show all versions
         run: uv pip list
 
       - name: Test scikit-hep/awkward
-        run: uv run pytest -vv -rs repo-awkward/tests
+        run: uv run pytest -vv -rs repo-awkward/tests -n 4
 
       - name: Test dask-contrib/dask-awkward
-        run: uv run pytest -vv -rs repo-dask-awkward/tests
+        run: uv run pytest -vv -rs repo-dask-awkward/tests  -n 4
 
       - name: Test scikit-hep/uproot5
-        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py
+        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py  -n 4
 
       - name: Test dask-contrib/vector
         run: |
           cd repo-vector/
-          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py
+          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py  -n 4
           cd ..
 
-      - name: Test scikit-hep/coffea
-        run: |
+      - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
+        if: matrix.dask-client == 'without'
+          run: |
           cd repo-coffea/
-          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine
+          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "not dask_client"  -n 4
+          cd ..
+
+      - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
+        if: matrix.dask-client == 'with'
+          run: |
+          cd repo-coffea/
+          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine  -m "dask_client"
           cd ..
