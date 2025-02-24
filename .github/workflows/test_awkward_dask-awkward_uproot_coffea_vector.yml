@@ -9,8 +9,6 @@ name: Integration Tests
 on:
   workflow_dispatch:
   pull_request:
-  branches:
-    - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -131,14 +129,14 @@ jobs:
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
         if: matrix.dask-client == 'without'
-          run: |
+        run: |
           cd repo-coffea/
           uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "not dask_client"  -n 4
           cd ..
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
         if: matrix.dask-client == 'with'
-          run: |
+        run: |
           cd repo-coffea/
           uv run --project .. pytest -vv -rs tests --deselect=test_taskvine  -m "dask_client"
           cd ..
