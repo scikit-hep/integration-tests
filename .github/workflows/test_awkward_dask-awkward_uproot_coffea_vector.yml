@@ -116,27 +116,27 @@ jobs:
         run: uv run pytest -vv -rs repo-awkward/tests -n 4
 
       - name: Test dask-contrib/dask-awkward
-        run: uv run pytest -vv -rs repo-dask-awkward/tests  -n 4
+        run: uv run pytest -vv -rs repo-dask-awkward/tests -n 1
 
       - name: Test scikit-hep/uproot5
-        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py  -n 4
+        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py -n 4
 
       - name: Test dask-contrib/vector
         run: |
           cd repo-vector/
-          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py  -n 4
+          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4
           cd ..
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
         if: matrix.dask-client == 'without'
         run: |
           cd repo-coffea/
-          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "not dask_client"  -n 4
+          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "not dask_client" -n 4
           cd ..
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
         if: matrix.dask-client == 'with'
         run: |
           cd repo-coffea/
-          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine  -m "dask_client"
+          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "dask_client"
           cd ..
