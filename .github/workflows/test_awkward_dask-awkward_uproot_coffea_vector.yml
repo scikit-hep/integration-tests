@@ -110,7 +110,7 @@ jobs:
       - name: Build uproot
         run: |
           cd repo-uproot5
-          uv pip install --system -e. --group=dev
+          uv pip install -e. --group=dev
           cd ..
 
       - name: Add xdist
