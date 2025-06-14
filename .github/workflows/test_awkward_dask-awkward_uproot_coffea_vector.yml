@@ -59,7 +59,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Sync env
-        run: GIT_LFS_SKIP_SMUDGE=1 uv sync --all-groups --all-extras
+        run: GIT_LFS_SKIP_SMUDGE=1 uv sync
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
@@ -107,10 +107,35 @@ jobs:
           uv pip install -vv ./awkward-cpp
           cd ..
 
+      - name: Build awkward
+        run: |
+          cd repo-awkward
+          uv pip install '.[test]'
+          uv pip install -r requirements-test-full.txt
+          cd ..
+
+      - name: Build dask-awkward
+        run: |
+          cd repo-dask-awkward
+          uv pip install '.[complete,test]'
+          cd ..
+
       - name: Build uproot
         run: |
           cd repo-uproot5
           uv pip install -e. --group=dev
+          cd ..
+
+      - name: Build vector
+        run: |
+          cd repo-vector
+          uv pip install '.[dev]'
+          cd ..
+
+      - name: Build coffea
+        run: |
+          cd repo-coffea
+          uv pip install '.[dev,dask]'
           cd ..
 
       - name: Add xdist
@@ -121,22 +146,21 @@ jobs:
 
       - name: Test scikit-hep/awkward
         run: uv run pytest -vv -rs repo-awkward/tests -n 4
-        continue-on-error: true
 
       - name: Test dask-contrib/dask-awkward
         run: uv run pytest -vv -rs repo-dask-awkward/tests -n 1
-        continue-on-error: true
 
       - name: Test scikit-hep/uproot5
-        run: uv run pytest -vv repo-uproot5/tests --reruns 3 --reruns-delay 30 --only-rerun "(?i)http|timeout|connection|socket" --ignore repo-vector/tests/conftest.py -n 4
-        continue-on-error: true
+        run: |
+          cd repo-uproot5/
+          uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"
+          cd ..
 
       - name: Test dask-contrib/vector
         run: |
           cd repo-vector/
           uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4
           cd ..
-        continue-on-error: true
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
         if: matrix.dask-client == 'without'
@@ -144,7 +168,6 @@ jobs:
           cd repo-coffea/
           uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "not dask_client" -n 4
           cd ..
-        continue-on-error: true
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
         if: matrix.dask-client == 'with'
@@ -152,4 +175,3 @@ jobs:
           cd repo-coffea/
           uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "dask_client"
           cd ..
-        continue-on-error: true

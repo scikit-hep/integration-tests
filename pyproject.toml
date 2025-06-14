@@ -5,8 +5,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "pytest",
-    "scikit-hep-testdata",
-    "pyarrow==18.0.0",     # this may need a fix in awkward-array for newer versions
+    "pyarrow==18.0.0", # this may need a fix in awkward-array for newer versions
     # the next at their current HEAD
     "awkward @ git+https://github.com/scikit-hep/awkward.git",
     "uproot @ git+https://github.com/scikit-hep/uproot5.git",
