@@ -150,11 +150,12 @@ jobs:
       - name: Test dask-contrib/dask-awkward
         run: uv run pytest -vv -rs repo-dask-awkward/tests -n 1
 
-      - name: Test scikit-hep/uproot5
-        run: |
-          cd repo-uproot5/
-          uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"
-          cd ..
+      # Enable again when they run
+      # - name: Test scikit-hep/uproot5
+      #   run: |
+      #     cd repo-uproot5/
+      #     uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"
+      #     cd ..
 
       - name: Test dask-contrib/vector
         run: |
