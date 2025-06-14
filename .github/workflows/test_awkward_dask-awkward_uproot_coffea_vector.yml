@@ -59,7 +59,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Sync env
-        run: GIT_LFS_SKIP_SMUDGE=1 uv sync
+        run: GIT_LFS_SKIP_SMUDGE=1 uv sync --all-groups --all-extras
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
