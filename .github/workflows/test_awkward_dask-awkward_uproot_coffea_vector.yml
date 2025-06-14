@@ -107,6 +107,12 @@ jobs:
           uv pip install -vv ./awkward-cpp
           cd ..
 
+      - name: Build uproot
+        run: |
+          cd repo-uproot5
+          uv pip install --system -e. --group=dev
+          cd ..
+
       - name: Add xdist
         run: uv pip install pytest-xdist
 
