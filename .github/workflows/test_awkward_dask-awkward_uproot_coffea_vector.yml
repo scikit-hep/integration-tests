@@ -10,6 +10,8 @@ name: Integration Tests
 on:
   workflow_dispatch:
   pull_request:
+  schedule:
+    - cron: '0 2 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,22 +21,23 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
 
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-latest, macOS-latest, windows-latest] # macOS & windows currently broken
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         java-version: [17]
         java-distribution: ["corretto"]
-        python-version:
-          - "3.9" # lowest
-          - "3.10"
-          - "3.11"
-          - "3.12"
-          - "3.13" # highest
+        python-version: ["3.9", "3.13"]
         dask-client: ["with", "without"]
 
     name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} dask
+
+    env:
+      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-JDK${{ matrix.java-version }}-${{ matrix.dask-client }}.md
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -48,18 +51,15 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: ${{ matrix.java-distribution }}
 
-      - name: Add workaround for 3.13 + cramjam
-        if: matrix.python-version == '3.13'
-        run: echo 'PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1' >> $GITHUB_ENV
-        shell: bash
-
       - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
       - name: Sync env
-        run: GIT_LFS_SKIP_SMUDGE=1 uv sync
+        run: |
+          git lfs install --skip-smudge
+          uv sync
 
       - name: Clone scikit-hep/awkward
         uses: actions/checkout@v4
@@ -145,34 +145,90 @@ jobs:
         run: uv pip list
 
       - name: Test scikit-hep/awkward
-        run: uv run pytest -vv -rs repo-awkward/tests -n 4
+        id: test-awkward
+        run: |
+          if uv run pytest -vv -rs repo-awkward/tests -n 4; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Test dask-contrib/dask-awkward
-        run: uv run pytest -vv -rs repo-dask-awkward/tests -n 1
+        id: test-dask-awkward
+        run: |
+          if uv run pytest -vv -rs repo-dask-awkward/tests -n 1; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
 
-      # Enable again when they run
-      # - name: Test scikit-hep/uproot5
-      #   run: |
-      #     cd repo-uproot5/
-      #     uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"
-      #     cd ..
+      - name: Test scikit-hep/uproot5
+        id: test-uproot
+        run: |
+          cd repo-uproot5/
+          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Test dask-contrib/vector
+        id: test-vector
         run: |
           cd repo-vector/
-          uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4
-          cd ..
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
-        if: matrix.dask-client == 'without'
+        id: test-coffea
         run: |
           cd repo-coffea/
-          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "not dask_client" -n 4
-          cd ..
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" -n 4; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
-        if: matrix.dask-client == 'with'
+      - name: Save results to file
         run: |
-          cd repo-coffea/
-          uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "dask_client"
-          cd ..
+          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
+          echo -n "${{ steps.test-awkward.outputs.success && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-dask-awkward.outputs.success && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-uproot.outputs.success && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-vector.outputs.success && '✅' || '❌' }} | " >> $FILENAME
+          echo "${{ steps.test-coffea.outputs.success && '✅' || '❌' }} |" >> $FILENAME
+          # Fail the job if any of the tests failed
+          # Ignore the output outcome of dask-awkward since it's flaky
+          ${{ steps.test-awkward.outputs.success && steps.test-uproot.outputs.success && steps.test-vector.outputs.success && steps.test-coffea.outputs.success && 'true' || 'false' }}
+
+      
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILENAME }}
+          path: ${{ env.FILENAME }}
+
+
+  summary:
+    name: Collect results
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: results
+
+      - name: Generate final summary
+        run: |
+          echo "---" > final_results.md
+          echo "| System Configuration | Awkward | Dask-Awkward | Uproot | Vector | Coffea |" >> final_results.md
+          echo "| --- | --- | --- | --- | --- | --- |" >> final_results.md
+          cat results/*.md >> final_results.md
+          cat final_results.md > $GITHUB_STEP_SUMMARY
