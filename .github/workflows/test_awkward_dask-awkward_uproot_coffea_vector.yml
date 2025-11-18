@@ -29,27 +29,19 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        java-version: [17]
-        java-distribution: ["corretto"]
         python-version: ["3.10", "3.13"]
         dask-client: ["with", "without"]
 
-    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} dask
+    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, ${{ matrix.dask-client }} dask
 
     env:
-      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-JDK${{ matrix.java-version }}-${{ matrix.dask-client }}.md
+      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dask-client }}.md
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: JDK ${{ matrix.java-distribution }}/${{ matrix.java-version }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: ${{ matrix.java-distribution }}
 
       - uses: actions/checkout@v4
 
@@ -183,7 +175,7 @@ jobs:
 
       - name: Save results to file
         run: |
-          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
+          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
           echo -n "${{ steps.test-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
