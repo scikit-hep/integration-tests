@@ -97,7 +97,7 @@ jobs:
         run: |
           cd repo-awkward
           uvx nox -s prepare -- --headers --signatures --tests
-          uv pip install --project .. -vv -e . ./awkward-cpp -r requirements-test-full.txt
+          uv pip install --project .. -vv -e . ./awkward-cpp -r requirements-test-full.txt -r requirements-test-ml.txt
 
       - name: Build dask-awkward
         run: |
