@@ -114,7 +114,7 @@ jobs:
       - name: Build uproot
         run: |
           cd repo-uproot5
-          uv pip install --project .. -e. --group=dev
+          uv pip install -e. --group=dev
 
       - name: Build vector
         run: |
