@@ -91,6 +91,7 @@ jobs:
           repository: scikit-hep/vector
           path: repo-vector
           ref: "main"
+          fetch-depth: 0
 
       - name: Clone scikit-hep/coffea
         uses: actions/checkout@v4
