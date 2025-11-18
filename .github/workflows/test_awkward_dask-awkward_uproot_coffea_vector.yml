@@ -100,23 +100,11 @@ jobs:
           ref: "master"
           fetch-depth: 0
 
-      - name: Build awkward-cpp
+      - name: Build awkward-cpp and awkward
         run: |
           cd repo-awkward
           pipx run nox -s prepare -- --headers --signatures --tests
-          pipx run build -w awkward-cpp
-
-      - name: Find built awkward-cpp wheel
-        uses: tj-actions/glob@v22
-        id: find-wheel
-        with:
-          files: |
-            repo-awkward/awkward-cpp/dist/*.whl
-
-      - name: Build awkward
-        run: |
-          cd repo-awkward
-          uv pip install --project .. '.[test]' ${{ steps.find-wheel.outputs.paths }} -r requirements-test-full.txt
+          uv pip install --project .. -vv '.[test]' ./awkward-cpp -r requirements-test-full.txt
 
       - name: Build dask-awkward
         run: |
