@@ -104,39 +104,39 @@ jobs:
         run: |
           cd repo-awkward
           pipx run nox -s prepare -- --headers --signatures --tests
-          uv pip install -vv ./awkward-cpp
-          cd ..
+          pipx run build -w awkward-cpp
+
+      - name: Find built awkward-cpp wheel
+        uses: tj-actions/glob@v22
+        id: find-wheel
+        with:
+          files: |
+            repo-awkward/awkward-cpp/dist/*.whl
 
       - name: Build awkward
         run: |
           cd repo-awkward
-          uv pip install '.[test]'
-          uv pip install -r requirements-test-full.txt
-          cd ..
+          uv pip install '.[test]' ${{ steps.find-wheel.outputs.paths }} -r requirements-test-full.txt
 
       - name: Build dask-awkward
         run: |
           cd repo-dask-awkward
           uv pip install '.[complete,test]'
-          cd ..
 
       - name: Build uproot
         run: |
           cd repo-uproot5
           uv pip install -e. --group=dev
-          cd ..
 
       - name: Build vector
         run: |
           cd repo-vector
           uv pip install '.[dev]'
-          cd ..
 
       - name: Build coffea
         run: |
           cd repo-coffea
           uv pip install '.[dev,dask]'
-          cd ..
 
       - name: Add xdist
         run: uv pip install pytest-xdist
