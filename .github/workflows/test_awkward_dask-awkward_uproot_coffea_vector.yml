@@ -116,7 +116,7 @@ jobs:
       - name: Build awkward
         run: |
           cd repo-awkward
-          uv pip install '.[test]' ${{ steps.find-wheel.outputs.paths }} -r requirements-test-full.txt
+          uv pip install --project .. '.[test]' ${{ steps.find-wheel.outputs.paths }} -r requirements-test-full.txt
 
       - name: Build dask-awkward
         run: |
@@ -126,17 +126,17 @@ jobs:
       - name: Build uproot
         run: |
           cd repo-uproot5
-          uv pip install -e. --group=dev
+          uv pip install --project .. -e. --group=dev
 
       - name: Build vector
         run: |
           cd repo-vector
-          uv pip install '.[dev]'
+          uv pip install --project .. '.[dev]'
 
       - name: Build coffea
         run: |
           cd repo-coffea
-          uv pip install '.[dev,dask]'
+          uv pip install --project .. '.[dev,dask]'
 
       - name: Add xdist
         run: uv pip install pytest-xdist
