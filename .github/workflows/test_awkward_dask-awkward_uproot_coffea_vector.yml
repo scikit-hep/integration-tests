@@ -31,7 +31,7 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         java-version: [17]
         java-distribution: ["corretto"]
-        python-version: ["3.9", "3.13"]
+        python-version: ["3.10", "3.13"]
         dask-client: ["with", "without"]
 
     name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} dask

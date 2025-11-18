@@ -2,7 +2,7 @@
 name = "integration-tests"
 version = "0.1.0"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "pytest",
     "pyarrow==18.0.0", # this may need a fix in awkward-array for newer versions
