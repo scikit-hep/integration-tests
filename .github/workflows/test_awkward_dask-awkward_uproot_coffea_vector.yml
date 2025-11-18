@@ -147,7 +147,7 @@ jobs:
       - name: Test scikit-hep/awkward
         id: test-awkward
         run: |
-          if uv run pytest -vv -rs repo-awkward/tests -n 4; then
+          if uv run pytest -vv -rs repo-awkward/tests -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -156,7 +156,7 @@ jobs:
       - name: Test dask-contrib/dask-awkward
         id: test-dask-awkward
         run: |
-          if uv run pytest -vv -rs repo-dask-awkward/tests -n 1; then
+          if uv run pytest -vv -rs repo-dask-awkward/tests -n 1 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -166,7 +166,7 @@ jobs:
         id: test-uproot
         run: |
           cd repo-uproot5/
-          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"; then
+          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket" --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -176,7 +176,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector/
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4; then
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -186,7 +186,7 @@ jobs:
         id: test-coffea
         run: |
           cd repo-coffea/
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" -n 4; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
