@@ -195,14 +195,14 @@ jobs:
       - name: Save results to file
         run: |
           echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
-          echo -n "${{ steps.test-awkward.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-dask-awkward.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-uproot.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-vector.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo "${{ steps.test-coffea.outputs.success && '✅' || '❌' }} |" >> $FILENAME
+          echo -n "${{ steps.test-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
           # Fail the job if any of the tests failed
           # Ignore the output outcome of dask-awkward since it's flaky
-          ${{ steps.test-awkward.outputs.success && steps.test-uproot.outputs.success && steps.test-vector.outputs.success && steps.test-coffea.outputs.success && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
       
       - name: Upload results artifact
