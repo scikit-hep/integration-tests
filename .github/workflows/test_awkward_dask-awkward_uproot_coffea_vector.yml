@@ -60,6 +60,7 @@ jobs:
           path: repo-awkward
           submodules: true
           ref: "main"
+          fetch-depth: 0
 
       - name: Clone dask-contrib/dask-awkward
         uses: actions/checkout@v4
@@ -76,6 +77,7 @@ jobs:
           repository: scikit-hep/uproot5
           path: repo-uproot5
           ref: "main"
+          fetch-depth: 0
 
       - name: Clone scikit-hep/vector
         uses: actions/checkout@v4
