@@ -5,11 +5,4 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "pytest",
-    "pyarrow==18.0.0", # this may need a fix in awkward-array for newer versions
-    # the next at their current HEAD
-    "awkward @ git+https://github.com/scikit-hep/awkward.git",
-    "uproot @ git+https://github.com/scikit-hep/uproot5.git",
-    "vector @ git+https://github.com/scikit-hep/vector.git",
-    "coffea @ git+https://github.com/scikit-hep/coffea.git",
-    "dask-awkward @ git+https://github.com/dask-contrib/dask-awkward.git",
 ]
