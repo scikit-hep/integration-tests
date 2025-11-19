@@ -119,7 +119,7 @@ jobs:
       - name: Build coffea
         run: |
           cd repo-coffea
-          uv pip install .. '.[dev,dask]'
+          uv pip install . '.[dev,dask]'
 
       - name: Add xdist
         run: uv pip install pytest-xdist
