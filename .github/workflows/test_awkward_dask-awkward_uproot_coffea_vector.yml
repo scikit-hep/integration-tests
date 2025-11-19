@@ -157,7 +157,7 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test dask-contrib/vector
+      - name: Test scikit-hep/vector
         id: test-vector
         run: |
           cd repo-vector
