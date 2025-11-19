@@ -141,7 +141,7 @@ jobs:
         id: test-dask-awkward
         run: |
           cd repo-dask-awkward
-          if uv run --project .. pytest -vv -rs repo-dask-awkward -n 1 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests -n 1 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
