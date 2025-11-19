@@ -141,7 +141,7 @@ jobs:
         id: test-dask-awkward
         run: |
           cd repo-dask-awkward
-          if uv run --project .. pytest -vv -rs tests -n 1 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -167,11 +167,11 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
+      - name: Test scikit-hep/coffea (${{ matrix.dask-client }} dask Client)
         id: test-coffea
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
