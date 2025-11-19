@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.13"]
         dask-client: ["with", "without"]
 
@@ -131,7 +131,7 @@ jobs:
         id: test-awkward
         run: |
           cd repo-awkward
-          if uv run --project .. pytest -vv -rs tests -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
