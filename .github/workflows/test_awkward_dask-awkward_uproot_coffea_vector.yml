@@ -28,16 +28,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
-        java-version: [17]
-        java-distribution: ["corretto"]
-        python-version: ["3.9", "3.13"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.13"]
         dask-client: ["with", "without"]
 
-    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} dask
+    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, ${{ matrix.dask-client }} dask
 
     env:
-      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-JDK${{ matrix.java-version }}-${{ matrix.dask-client }}.md
+      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dask-client }}.md
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -45,16 +43,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: JDK ${{ matrix.java-distribution }}/${{ matrix.java-version }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: ${{ matrix.java-distribution }}
-
       - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
 
       - name: Sync env
         run: |
@@ -68,6 +62,7 @@ jobs:
           path: repo-awkward
           submodules: true
           ref: "main"
+          fetch-depth: 0
 
       - name: Clone dask-contrib/dask-awkward
         uses: actions/checkout@v4
@@ -84,6 +79,7 @@ jobs:
           repository: scikit-hep/uproot5
           path: repo-uproot5
           ref: "main"
+          fetch-depth: 0
 
       - name: Clone scikit-hep/vector
         uses: actions/checkout@v4
@@ -91,6 +87,7 @@ jobs:
           repository: scikit-hep/vector
           path: repo-vector
           ref: "main"
+          fetch-depth: 0
 
       - name: Clone scikit-hep/coffea
         uses: actions/checkout@v4
@@ -100,43 +97,31 @@ jobs:
           ref: "master"
           fetch-depth: 0
 
-      - name: Build awkward-cpp
+      - name: Build awkward-cpp and awkward
         run: |
           cd repo-awkward
-          pipx run nox -s prepare -- --headers --signatures --tests
-          uv pip install -vv ./awkward-cpp
-          cd ..
-
-      - name: Build awkward
-        run: |
-          cd repo-awkward
-          uv pip install '.[test]'
-          uv pip install -r requirements-test-full.txt
-          cd ..
+          uvx nox -s prepare -- --headers --signatures --tests
+          uv pip install -vv . ./awkward-cpp -r requirements-test-full.txt -r requirements-test-ml.txt
 
       - name: Build dask-awkward
         run: |
           cd repo-dask-awkward
           uv pip install '.[complete,test]'
-          cd ..
 
       - name: Build uproot
         run: |
           cd repo-uproot5
-          uv pip install -e. --group=dev
-          cd ..
+          uv pip install . --group=dev
 
       - name: Build vector
         run: |
           cd repo-vector
-          uv pip install '.[dev]'
-          cd ..
+          uv pip install . --group=dev --group=test-all
 
       - name: Build coffea
         run: |
           cd repo-coffea
           uv pip install '.[dev,dask]'
-          cd ..
 
       - name: Add xdist
         run: uv pip install pytest-xdist
@@ -147,7 +132,8 @@ jobs:
       - name: Test scikit-hep/awkward
         id: test-awkward
         run: |
-          if uv run pytest -vv -rs repo-awkward/tests -n 4; then
+          cd repo-awkward
+          if uv run --project .. pytest -vv -rs tests ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -156,7 +142,8 @@ jobs:
       - name: Test dask-contrib/dask-awkward
         id: test-dask-awkward
         run: |
-          if uv run pytest -vv -rs repo-dask-awkward/tests -n 1; then
+          cd repo-dask-awkward
+          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -165,28 +152,28 @@ jobs:
       - name: Test scikit-hep/uproot5
         id: test-uproot
         run: |
-          cd repo-uproot5/
-          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket"; then
+          cd repo-uproot5
+          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket" --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test dask-contrib/vector
+      - name: Test scikit-hep/vector
         id: test-vector
         run: |
-          cd repo-vector/
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4; then
+          cd repo-vector
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test scikit-hep/coffea, (${{ matrix.dask-client }} dask Client - run in parallel)
+      - name: Test scikit-hep/coffea (${{ matrix.dask-client }} dask Client)
         id: test-coffea
         run: |
-          cd repo-coffea/
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" -n 4; then
+          cd repo-coffea
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -194,22 +181,29 @@ jobs:
 
       - name: Save results to file
         run: |
-          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, JDK${{ matrix.java-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
-          echo -n "${{ steps.test-awkward.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-dask-awkward.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-uproot.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-vector.outputs.success && '✅' || '❌' }} | " >> $FILENAME
-          echo "${{ steps.test-coffea.outputs.success && '✅' || '❌' }} |" >> $FILENAME
-          # Fail the job if any of the tests failed
-          # Ignore the output outcome of dask-awkward since it's flaky
-          ${{ steps.test-awkward.outputs.success && steps.test-uproot.outputs.success && steps.test-vector.outputs.success && steps.test-coffea.outputs.success && 'true' || 'false' }}
-
+          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
+          echo -n "${{ steps.test-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
       
       - name: Upload results artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILENAME }}
           path: ${{ env.FILENAME }}
+
+      - name: Check if tests failed
+        run: |
+          echo ${{ steps.test-awkward.outputs.success == 'true' && ' ' || 'Awkward tests failed' }}
+          echo ${{ steps.test-dask-awkward.outputs.success == 'true' && ' ' || 'Dask Awkward tests failed' }}
+          echo ${{ steps.test-uproot.outputs.success == 'true' && ' ' || 'Uproot tests failed' }}
+          echo ${{ steps.test-vector.outputs.success == 'true' && ' ' || 'Vector tests failed' }}
+          echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
+          # Fail the job if any of the tests failed
+          # Ignore the output outcome of dask-awkward since it's flaky
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
 
   summary:
