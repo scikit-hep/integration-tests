@@ -101,7 +101,11 @@ jobs:
         run: |
           cd repo-awkward
           uvx nox -s prepare -- --headers --signatures --tests
-          uv pip install -vv . ./awkward-cpp -r requirements-test-full.txt -r requirements-test-ml.txt
+          if [[ "${{ matrix.python-version }}" == "3.14" ]]; then
+            uv pip install -vv . ./awkward-cpp -r requirements-test-full.txt
+          else
+            uv pip install -vv . ./awkward-cpp -r requirements-test-full.txt -r requirements-test-ml.txt
+          fi
 
       - name: Build dask-awkward
         run: |
