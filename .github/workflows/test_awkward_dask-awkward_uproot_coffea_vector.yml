@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.13"]
+        python-version: ["3.10", "3.13", "3.14"]
         dask-client: ["with", "without"]
 
     name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, ${{ matrix.dask-client }} dask
@@ -116,7 +116,7 @@ jobs:
       - name: Build vector
         run: |
           cd repo-vector
-          uv pip install . --group=dev --group=test-all
+          uv pip install . --group=dev --group=test-all-gil
 
       - name: Build coffea
         run: |
