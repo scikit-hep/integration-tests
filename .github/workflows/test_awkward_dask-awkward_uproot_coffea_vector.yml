@@ -116,7 +116,7 @@ jobs:
       - name: Build vector
         run: |
           cd repo-vector
-          uv pip install . --group=dev --group=test-all
+          uv pip install . --group=dev --group=test-all-gil
 
       - name: Build coffea
         run: |
