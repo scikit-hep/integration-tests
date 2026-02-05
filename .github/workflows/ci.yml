@@ -223,6 +223,7 @@ jobs:
           fi
 
       - name: Test scikit-hep/boost-histogram
+        id: test-boost-histogram
         run: |
           cd repo-boost-histogram
           if uv run --project .. pytest -vv -rs tests --timeout=1000; then
@@ -232,6 +233,7 @@ jobs:
           fi
 
       - name: Test scikit-hep/hist
+        id: test-hist
         run: |
           cd repo-hist
           if uv run --project .. pytest -vv -rs tests --timeout=1000; then
@@ -241,6 +243,7 @@ jobs:
           fi
 
       - name: Test dask-contrib/dask-histogram
+        id: test-dask-histogram
         run: |
           cd repo-dask-histogram
           if uv run --project .. pytest -vv -rs tests --timeout=1000; then
@@ -256,10 +259,10 @@ jobs:
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
-          echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
-          echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
-          echo "${{ steps.test-dask-histogram.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
+          echo -n "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo "${{ steps.test-dask-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
 
       
       - name: Upload results artifact
@@ -300,6 +303,6 @@ jobs:
         run: |
           echo "---" > final_results.md
           echo "| System Configuration | Awkward | Dask-Awkward | Uproot | Vector | Coffea | Boost-Histogram | Hist | Dask-Histogram |" >> final_results.md
-          echo "| --- | --- | --- | --- | --- | --- |" >> final_results.md
+          echo "| --- | --- | --- | --- | --- | --- | --- | --- | --- |" >> final_results.md
           cat results/*.md >> final_results.md
           cat final_results.md > $GITHUB_STEP_SUMMARY
