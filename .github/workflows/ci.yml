@@ -261,7 +261,7 @@ jobs:
           echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-dask-histrogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-dask-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
 
       - name: Upload results artifact
@@ -282,7 +282,7 @@ jobs:
           echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
           # Fail the job if any of the tests failed
           # Ignore the output outcome of dask-awkward since it's flaky
-          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success) && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
 
   summary:
