@@ -143,7 +143,7 @@ jobs:
         id: test-dask-awkward
         run: |
           cd repo-dask-awkward
-          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -201,9 +201,7 @@ jobs:
           echo ${{ steps.test-uproot.outputs.success == 'true' && ' ' || 'Uproot tests failed' }}
           echo ${{ steps.test-vector.outputs.success == 'true' && ' ' || 'Vector tests failed' }}
           echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
-          # Fail the job if any of the tests failed
-          # Ignore the output outcome of dask-awkward since it's flaky
-          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
 
   summary:
