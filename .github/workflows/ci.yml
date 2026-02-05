@@ -206,7 +206,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4--timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
