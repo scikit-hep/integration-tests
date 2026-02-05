@@ -161,7 +161,7 @@ jobs:
           cd repo-hist
           uv pip install -e . --group=test --group=dask
 
-      - name : Build dask-histogram
+      - name: Build dask-histogram
         run: |
           cd repo-dask-histogram
           uv pip install -e '.[test]'
