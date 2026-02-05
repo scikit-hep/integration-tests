@@ -167,7 +167,6 @@ jobs:
           uv pip install '.[dev,dask]'
 
       - name: Add xdist
-        run: uv pip uninstall pytest-benchmark
         run: uv pip install pytest-xdist
 
 
@@ -178,7 +177,7 @@ jobs:
         id: test-awkward
         run: |
           cd repo-awkward
-          if uv run --project .. pytest -vv -rs tests ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --benchmark-disable ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -208,7 +207,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4--timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -248,7 +247,7 @@ jobs:
         id: test-coffea
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
