@@ -154,12 +154,12 @@ jobs:
       - name: Build hist
         run: |
           cd repo-hist
-          uv pip install -e . --group=test --group=dask
+          uv pip install . --group=test --group=dask
 
       - name: Build dask-histogram
         run: |
           cd repo-dask-histogram
-          uv pip install -e '.[test]'
+          uv pip install '.[test]'
 
       - name: Build coffea
         run: |
