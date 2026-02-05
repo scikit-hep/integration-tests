@@ -262,7 +262,7 @@ jobs:
           echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-dask-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
 
       - name: Upload results artifact
         uses: actions/upload-artifact@v4
