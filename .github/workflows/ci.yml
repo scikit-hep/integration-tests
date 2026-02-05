@@ -154,12 +154,12 @@ jobs:
       - name: Build boost-histogram
         run: |
           cd repo-boost-histogram
-          uv pip install -v . --group test
+          uv pip install -v . --group=test
 
       - name: Build hist
         run: |
           cd repo-hist
-          uv pip install -e . --group test --group dask
+          uv pip install -e . --group=test --group=dask
 
       - name : Build dask-histogram
         run: |
