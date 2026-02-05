@@ -167,7 +167,9 @@ jobs:
           uv pip install '.[dev,dask]'
 
       - name: Add xdist
+        run: uv pip uninstall pytest-benchmark
         run: uv pip install pytest-xdist
+
 
       - name: Show all versions
         run: uv pip list
