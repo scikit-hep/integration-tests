@@ -3,10 +3,10 @@
 # https://github.com/dask-contrib/dask-awkward/blob/main/.github/workflows/pypi-tests.yml
 # https://github.com/scikit-hep/uproot5/blob/main/.github/workflows/build-test.yml
 # https://github.com/scikit-hep/vector/blob/main/.github/workflows/ci.yml
-# https://github.com/scikit-hep/coffea/blob/master/.github/workflows/ci.yml
 # https://github.com/scikit-hep/boost-histogram/blob/develop/.github/workflows/weekly.yml
 # https://github.com/scikit-hep/hist/blob/main/.github/workflows/ci.yml
 # https://github.com/dask-contrib/dask-histogram/blob/main/.github/workflows/ci.yml
+# https://github.com/scikit-hep/coffea/blob/master/.github/workflows/ci.yml
 
 name: Integration Tests
 
@@ -92,14 +92,6 @@ jobs:
           ref: "main"
           fetch-depth: 0
 
-      - name: Clone scikit-hep/coffea
-        uses: actions/checkout@v4
-        with:
-          repository: scikit-hep/coffea
-          path: repo-coffea
-          ref: "master"
-          fetch-depth: 0
-
       - name: Clone scikit-hep/boost-histogram
         uses: actions/checkout@v4
         with:
@@ -125,6 +117,14 @@ jobs:
           ref: "main"
           fetch-depth: 0
 
+      - name: Clone scikit-hep/coffea
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/coffea
+          path: repo-coffea
+          ref: "master"
+          fetch-depth: 0
+
       - name: Build awkward-cpp and awkward
         run: |
           cd repo-awkward
@@ -146,11 +146,6 @@ jobs:
           cd repo-vector
           uv pip install . --group=dev --group=test-all-gil
 
-      - name: Build coffea
-        run: |
-          cd repo-coffea
-          uv pip install '.[dev,dask]'
-
       - name: Build boost-histogram
         run: |
           cd repo-boost-histogram
@@ -165,6 +160,11 @@ jobs:
         run: |
           cd repo-dask-histogram
           uv pip install -e '.[test]'
+
+      - name: Build coffea
+        run: |
+          cd repo-coffea
+          uv pip install '.[dev,dask]'
 
       - name: Add xdist
         run: uv pip install pytest-xdist
@@ -212,16 +212,6 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test scikit-hep/coffea (${{ matrix.dask-client }} dask Client)
-        id: test-coffea
-        run: |
-          cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
-            echo "success=true" >> $GITHUB_OUTPUT
-          else
-            echo "success=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Test scikit-hep/boost-histogram
         id: test-boost-histogram
         run: |
@@ -252,6 +242,16 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Test scikit-hep/coffea (${{ matrix.dask-client }} dask Client)
+        id: test-coffea
+        run: |
+          cd repo-coffea
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Save results to file
         run: |
           echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
@@ -259,10 +259,10 @@ jobs:
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo "${{ steps.test-dask-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-dask-histrogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
 
       
       - name: Upload results artifact
@@ -277,13 +277,13 @@ jobs:
           echo ${{ steps.test-dask-awkward.outputs.success == 'true' && ' ' || 'Dask-Awkward tests failed' }}
           echo ${{ steps.test-uproot.outputs.success == 'true' && ' ' || 'Uproot tests failed' }}
           echo ${{ steps.test-vector.outputs.success == 'true' && ' ' || 'Vector tests failed' }}
-          echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
           echo ${{ steps.test-boost-histogram.outputs.success == 'true' && ' ' || 'Boost-Histogram tests failed' }}
           echo ${{ steps.test-hist.outputs.success == 'true' && ' ' || 'Hist tests failed' }}
           echo ${{ steps.test-dask-histogram.outputs.success == 'true' && ' ' || 'Dask-Histogram tests failed' }}
+          echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
           # Fail the job if any of the tests failed
           # Ignore the output outcome of dask-awkward since it's flaky
-          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true') && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success) && 'true' || 'false' }}
 
 
   summary:
@@ -302,7 +302,7 @@ jobs:
       - name: Generate final summary
         run: |
           echo "---" > final_results.md
-          echo "| System Configuration | Awkward | Dask-Awkward | Uproot | Vector | Coffea | Boost-Histogram | Hist | Dask-Histogram |" >> final_results.md
+          echo "| System Configuration | Awkward | Dask-Awkward | Uproot | Vector | Boost-Histogram | Hist | Dask-Histogram | Coffea |" >> final_results.md
           echo "| --- | --- | --- | --- | --- | --- | --- | --- | --- |" >> final_results.md
           cat results/*.md >> final_results.md
           cat final_results.md > $GITHUB_STEP_SUMMARY
