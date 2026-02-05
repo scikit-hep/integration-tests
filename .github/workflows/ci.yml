@@ -169,7 +169,6 @@ jobs:
       - name: Add xdist
         run: uv pip install pytest-xdist
 
-
       - name: Show all versions
         run: uv pip list
 
