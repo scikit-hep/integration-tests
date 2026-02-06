@@ -2,8 +2,11 @@
 # https://github.com/scikit-hep/awkward/blob/main/.github/workflows/test.yml
 # https://github.com/dask-contrib/dask-awkward/blob/main/.github/workflows/pypi-tests.yml
 # https://github.com/scikit-hep/uproot5/blob/main/.github/workflows/build-test.yml
-# https://github.com/scikit-hep/coffea/blob/master/.github/workflows/ci.yml
 # https://github.com/scikit-hep/vector/blob/main/.github/workflows/ci.yml
+# https://github.com/scikit-hep/boost-histogram/blob/develop/.github/workflows/weekly.yml
+# https://github.com/scikit-hep/hist/blob/main/.github/workflows/ci.yml
+# https://github.com/dask-contrib/dask-histogram/blob/main/.github/workflows/ci.yml
+# https://github.com/scikit-hep/coffea/blob/master/.github/workflows/ci.yml
 
 name: Integration Tests
 
@@ -89,6 +92,31 @@ jobs:
           ref: "main"
           fetch-depth: 0
 
+      - name: Clone scikit-hep/boost-histogram
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/boost-histogram
+          path: repo-boost-histogram
+          submodules: true
+          ref: "develop"
+          fetch-depth: 0
+
+      - name: Clone scikit-hep/hist
+        uses: actions/checkout@v4
+        with:
+          repository: scikit-hep/hist
+          path: repo-hist
+          ref: "main"
+          fetch-depth: 0
+
+      - name: Clone dask-contrib/dask-histogram
+        uses: actions/checkout@v4
+        with:
+          repository: dask-contrib/dask-histogram
+          path: repo-dask-histogram
+          ref: "main"
+          fetch-depth: 0
+
       - name: Clone scikit-hep/coffea
         uses: actions/checkout@v4
         with:
@@ -118,6 +146,21 @@ jobs:
           cd repo-vector
           uv pip install . --group=dev --group=test-all-gil
 
+      - name: Build boost-histogram
+        run: |
+          cd repo-boost-histogram
+          uv pip install -v . --group=test
+
+      - name: Build hist
+        run: |
+          cd repo-hist
+          uv pip install . --group=test --group=dask
+
+      - name: Build dask-histogram
+        run: |
+          cd repo-dask-histogram
+          uv pip install '.[test]'
+
       - name: Build coffea
         run: |
           cd repo-coffea
@@ -133,7 +176,7 @@ jobs:
         id: test-awkward
         run: |
           cd repo-awkward
-          if uv run --project .. pytest -vv -rs tests ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --benchmark-disable ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -163,7 +206,37 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test scikit-hep/boost-histogram
+        id: test-boost-histogram
+        run: |
+          cd repo-boost-histogram
+          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test scikit-hep/hist
+        id: test-hist
+        run: |
+          cd repo-hist
+          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test dask-contrib/dask-histogram
+        id: test-dask-histogram
+        run: |
+          cd repo-dask-histogram
+          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -173,7 +246,7 @@ jobs:
         id: test-coffea
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -186,8 +259,11 @@ jobs:
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-dask-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo "${{ steps.test-coffea.outputs.success == 'true' && '✅' || '❌' }} |" >> $FILENAME
-      
+
       - name: Upload results artifact
         uses: actions/upload-artifact@v4
         with:
@@ -197,11 +273,14 @@ jobs:
       - name: Check if tests failed
         run: |
           echo ${{ steps.test-awkward.outputs.success == 'true' && ' ' || 'Awkward tests failed' }}
-          echo ${{ steps.test-dask-awkward.outputs.success == 'true' && ' ' || 'Dask Awkward tests failed' }}
+          echo ${{ steps.test-dask-awkward.outputs.success == 'true' && ' ' || 'Dask-Awkward tests failed' }}
           echo ${{ steps.test-uproot.outputs.success == 'true' && ' ' || 'Uproot tests failed' }}
           echo ${{ steps.test-vector.outputs.success == 'true' && ' ' || 'Vector tests failed' }}
+          echo ${{ steps.test-boost-histogram.outputs.success == 'true' && ' ' || 'Boost-Histogram tests failed' }}
+          echo ${{ steps.test-hist.outputs.success == 'true' && ' ' || 'Hist tests failed' }}
+          echo ${{ steps.test-dask-histogram.outputs.success == 'true' && ' ' || 'Dask-Histogram tests failed' }}
           echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
-          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
 
   summary:
@@ -220,7 +299,7 @@ jobs:
       - name: Generate final summary
         run: |
           echo "---" > final_results.md
-          echo "| System Configuration | Awkward | Dask-Awkward | Uproot | Vector | Coffea |" >> final_results.md
-          echo "| --- | --- | --- | --- | --- | --- |" >> final_results.md
+          echo "| System Configuration | Awkward | Dask-Awkward | Uproot | Vector | Boost-Histogram | Hist | Dask-Histogram | Coffea |" >> final_results.md
+          echo "| --- | --- | --- | --- | --- | --- | --- | --- | --- |" >> final_results.md
           cat results/*.md >> final_results.md
           cat final_results.md > $GITHUB_STEP_SUMMARY
