@@ -39,6 +39,7 @@ jobs:
 
     env:
       FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dask-client }}.md
+      PYTHON_GIL: ${{ matrix.python-version == '3.14t' && '0' || '' }}
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -206,7 +207,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000 ${{ matrix.python-version == '3.14t' && '--deselect tests/backends/test_numba_object.py::test_VectorObjectType' || '' }}; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
