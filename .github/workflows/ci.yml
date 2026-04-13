@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.13", "3.14"]
+        python-version: ["3.10", "3.13", "3.14", "3.14t"]
         dask-client: ["with", "without"]
 
     name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, ${{ matrix.dask-client }} dask
@@ -172,6 +172,10 @@ jobs:
       - name: Show all versions
         run: uv pip list
 
+      - name: Set PYTHON_GIL=0 for free-threaded builds
+        if: matrix.python-version == '3.14t'
+        run: echo "PYTHON_GIL=0" >> $GITHUB_ENV
+
       - name: Test scikit-hep/awkward
         id: test-awkward
         run: |
@@ -193,6 +197,7 @@ jobs:
           fi
 
       - name: Test scikit-hep/uproot5
+        if: matrix.python-version != '3.14t'
         id: test-uproot
         run: |
           cd repo-uproot5
@@ -206,7 +211,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000 ${{ matrix.python-version == '3.14t' && '--deselect tests/backends/test_numba_object.py::test_VectorObjectType' || '' }}; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -257,7 +262,7 @@ jobs:
           echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
           echo -n "${{ steps.test-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
+          echo -n "${{ steps.test-uproot.outcome == 'skipped' && '⏭️' || (steps.test-uproot.outputs.success == 'true' && '✅' || '❌') }} | " >> $FILENAME
           echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
@@ -274,13 +279,13 @@ jobs:
         run: |
           echo ${{ steps.test-awkward.outputs.success == 'true' && ' ' || 'Awkward tests failed' }}
           echo ${{ steps.test-dask-awkward.outputs.success == 'true' && ' ' || 'Dask-Awkward tests failed' }}
-          echo ${{ steps.test-uproot.outputs.success == 'true' && ' ' || 'Uproot tests failed' }}
+          echo ${{ (steps.test-uproot.outcome == 'skipped' || steps.test-uproot.outputs.success == 'true') && ' ' || 'Uproot tests failed' }}
           echo ${{ steps.test-vector.outputs.success == 'true' && ' ' || 'Vector tests failed' }}
           echo ${{ steps.test-boost-histogram.outputs.success == 'true' && ' ' || 'Boost-Histogram tests failed' }}
           echo ${{ steps.test-hist.outputs.success == 'true' && ' ' || 'Hist tests failed' }}
           echo ${{ steps.test-dask-histogram.outputs.success == 'true' && ' ' || 'Dask-Histogram tests failed' }}
           echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
-          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && (steps.test-uproot.outcome == 'skipped' || steps.test-uproot.outputs.success == 'true') && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
 
   summary:
