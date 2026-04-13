@@ -245,7 +245,7 @@ jobs:
         id: test-coffea
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "not dask_client" -n 4 --timeout=1000 && uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "dask_client" --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
