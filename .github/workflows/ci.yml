@@ -33,12 +33,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.13", "3.14"]
-        dask-client: ["with", "without"]
 
-    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}, ${{ matrix.dask-client }} dask
+    name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}
 
     env:
-      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dask-client }}.md
+      FILENAME: results-${{ matrix.os }}-${{ matrix.python-version }}.md
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -242,11 +241,11 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test scikit-hep/coffea (${{ matrix.dask-client }} dask Client)
+      - name: Test scikit-hep/coffea
         id: test-coffea
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "${{ matrix.dask-client == 'without' && 'not ' || '' }}dask_client" ${{ matrix.dask-client == 'without' && '-n 4' || '' }} --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -254,7 +253,7 @@ jobs:
 
       - name: Save results to file
         run: |
-          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }}, ${{ matrix.dask-client }} Dask | " > $FILENAME
+          echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }} | " > $FILENAME
           echo -n "${{ steps.test-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
