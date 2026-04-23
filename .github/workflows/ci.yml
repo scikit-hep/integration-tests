@@ -196,7 +196,6 @@ jobs:
           fi
 
       - name: Test scikit-hep/uproot5
-        if: matrix.python-version != '3.14t'
         id: test-uproot
         run: |
           cd repo-uproot5
@@ -261,7 +260,7 @@ jobs:
           echo -n "| ${{ matrix.os }}, Python${{ matrix.python-version }} | " > $FILENAME
           echo -n "${{ steps.test-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-dask-awkward.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
-          echo -n "${{ steps.test-uproot.outcome == 'skipped' && '⏭️' || (steps.test-uproot.outputs.success == 'true' && '✅' || '❌') }} | " >> $FILENAME
+          echo -n "${{ steps.test-uproot.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-vector.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-boost-histogram.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
           echo -n "${{ steps.test-hist.outputs.success == 'true' && '✅' || '❌' }} | " >> $FILENAME
@@ -278,13 +277,13 @@ jobs:
         run: |
           echo ${{ steps.test-awkward.outputs.success == 'true' && ' ' || 'Awkward tests failed' }}
           echo ${{ steps.test-dask-awkward.outputs.success == 'true' && ' ' || 'Dask-Awkward tests failed' }}
-          echo ${{ (steps.test-uproot.outcome == 'skipped' || steps.test-uproot.outputs.success == 'true') && ' ' || 'Uproot tests failed' }}
+          echo ${{ steps.test-uproot.outputs.success == 'true' && ' ' || 'Uproot tests failed' }}
           echo ${{ steps.test-vector.outputs.success == 'true' && ' ' || 'Vector tests failed' }}
           echo ${{ steps.test-boost-histogram.outputs.success == 'true' && ' ' || 'Boost-Histogram tests failed' }}
           echo ${{ steps.test-hist.outputs.success == 'true' && ' ' || 'Hist tests failed' }}
           echo ${{ steps.test-dask-histogram.outputs.success == 'true' && ' ' || 'Dask-Histogram tests failed' }}
           echo ${{ steps.test-coffea.outputs.success == 'true' && ' ' || 'Coffea tests failed' }}
-          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && (steps.test-uproot.outcome == 'skipped' || steps.test-uproot.outputs.success == 'true') && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
+          ${{ (steps.test-awkward.outputs.success == 'true' && steps.test-dask-awkward.outputs.success == 'true' && steps.test-uproot.outputs.success == 'true' && steps.test-vector.outputs.success == 'true' && steps.test-boost-histogram.outputs.success == 'true' && steps.test-hist.outputs.success == 'true' && steps.test-dask-histogram.outputs.success == 'true' && steps.test-coffea.outputs.success == 'true') && 'true' || 'false' }}
 
 
   summary:
