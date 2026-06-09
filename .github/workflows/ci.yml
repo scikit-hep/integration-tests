@@ -138,7 +138,7 @@ jobs:
       - name: Build uproot
         run: |
           cd repo-uproot5
-          uv pip install . --group=dev
+          uv pip install . --group=dev ${{ runner.os != 'Windows' && !contains(matrix.python-version, 't') && '--group=test-xrootd' || '' }}
 
       - name: Build vector
         run: |
