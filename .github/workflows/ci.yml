@@ -375,12 +375,12 @@ jobs:
       - name: Build uproot
         run: |
           cd repo-uproot5
-          uv pip install . --group=dev
+          uv pip install . --group=test
 
       - name: Build vector
         run: |
           cd repo-vector
-          uv pip install . --group=dev --group=test-all
+          uv pip install . --group=dev
 
       - name: Build boost-histogram
         run: |
@@ -402,6 +402,13 @@ jobs:
 
       - name: Show all versions
         run: uv pip list
+
+      - name: Ensure dask is not installed yet
+        run: |
+          if uv pip list --format=freeze | grep -iE '^(dask|dask-awkward|dask-histogram|distributed|bokeh)=='; then
+            echo "::error::dask-related package found before the explicit coffea dask install step"
+            exit 1
+          fi
 
       - name: Test scikit-hep/awkward
         id: test-awkward
@@ -457,7 +464,7 @@ jobs:
         id: test-coffea
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "not dask_client" -n 4 --timeout=1000 && uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "dask_client" --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "not dask_client" -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -475,7 +482,7 @@ jobs:
         id: test-coffea-dask
         run: |
           cd repo-coffea
-          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "not dask_client" -n 4 --timeout=1000 && uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "dask_client" --timeout=1000; then
+          if uv run --project .. pytest -vv -rs tests --deselect=test_taskvine --benchmark-disable -m "not dask_client" -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
