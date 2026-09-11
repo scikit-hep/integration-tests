@@ -163,7 +163,7 @@ jobs:
       - name: Build coffea
         run: |
           cd repo-coffea
-          uv pip install '.[dev,dask,dask-awkward]'
+          uv pip install '.[dask,dask-awkward]' --group=test
 
       - name: Add xdist
         run: uv pip install pytest-xdist
@@ -395,7 +395,7 @@ jobs:
       - name: Build coffea
         run: |
           cd repo-coffea
-          uv pip install '.[dev]'
+          uv pip install . --group=test
 
       - name: Add xdist
         run: uv pip install pytest-xdist
