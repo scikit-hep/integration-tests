@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11", "3.13", "3.14", "3.14t"]
+        python-version: ["3.11", "3.14", "3.14t"]
 
     name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}
 
