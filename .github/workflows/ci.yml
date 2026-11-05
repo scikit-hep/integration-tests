@@ -23,7 +23,7 @@ concurrency:
 env:
   # Run every package's tests in the one environment left by the install steps.
   # Otherwise `uv run` re-syncs the root project first, undoing pins made by
-  # later installs (e.g. boost-histogram's pytest<9.2).
+  # later installs.
   UV_NO_SYNC: "1"
   # Awkward, Uproot, Vector and Coffea set this supply-chain cooldown in their
   # [tool.uv] config, which `uv pip install` only picks up when run from inside
