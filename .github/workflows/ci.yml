@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.13", "3.14", "3.14t"]
+        python-version: ["3.11", "3.13", "3.14", "3.14t"]
 
     name: Test (${{ matrix.os }}) - 🐍 ${{ matrix.python-version }}
 
@@ -179,7 +179,7 @@ jobs:
         id: test-awkward
         run: |
           cd repo-awkward
-          if uv run --project .. pytest -vv -rs tests --benchmark-disable ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --benchmark-disable ${{ matrix.os != 'windows-latest' && '-n 4' || '' }} --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -189,7 +189,7 @@ jobs:
         id: test-dask-awkward
         run: |
           cd repo-dask-awkward
-          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -199,7 +199,7 @@ jobs:
         id: test-uproot
         run: |
           cd repo-uproot5
-          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket" --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket" --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -209,7 +209,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -219,7 +219,7 @@ jobs:
         id: test-boost-histogram
         run: |
           cd repo-boost-histogram
-          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -229,7 +229,7 @@ jobs:
         id: test-hist
         run: |
           cd repo-hist
-          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -239,7 +239,7 @@ jobs:
         id: test-dask-histogram
         run: |
           cd repo-dask-histogram
-          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -414,7 +414,7 @@ jobs:
         id: test-awkward
         run: |
           cd repo-awkward
-          if uv run --project .. pytest -vv -rs tests --benchmark-disable -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --benchmark-disable -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -424,7 +424,7 @@ jobs:
         id: test-uproot
         run: |
           cd repo-uproot5
-          if uv run --project .. pytest -vv -rs tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket" --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --reruns 10 --reruns-delay 30 --only-rerun "(?i)http|ssl|timeout|expired|connection|socket" --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -434,7 +434,7 @@ jobs:
         id: test-vector
         run: |
           cd repo-vector
-          if uv run --project .. pytest -vv -rs tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --ignore tests/test_notebooks.py --benchmark-disable -n 4 --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -444,7 +444,7 @@ jobs:
         id: test-boost-histogram
         run: |
           cd repo-boost-histogram
-          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
@@ -454,7 +454,7 @@ jobs:
         id: test-hist
         run: |
           cd repo-hist
-          if uv run --project .. pytest -vv -rs tests --timeout=1000; then
+          if uv run --project .. pytest -vv -rs -p no:asyncio tests --timeout=1000; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
